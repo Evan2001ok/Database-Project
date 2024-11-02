@@ -1,0 +1,202 @@
+1. Show the subject names of books supplied by *supplier2*.
+
+SELECT DISTINCT s.CategoryName
+FROM Books b, Subjects s, Suppliers p
+WHERE b.SupplierID = p.SupplierID
+  AND b.SubjectID = s.SubjectID
+  AND p.CompanyName = 'supplier2';
+
+
+2. Show the name and price of the most expensive book supplied by
+     *supplier3*.
+
+SELECT b.Title, b.UnitPrice
+FROM Books b, Suppliers p
+WHERE b.SupplierID = p.SupplierID
+  AND p.CompanyName = 'supplier3'
+ORDER BY b.UnitPrice DESC
+LIMIT 1;
+
+3. Show the unique names of all books ordered by *lastname1
+     firstname1*.
+
+SELECT DISTINCT b.Title
+FROM Books b, OrderDetails od, Orders o, Customers c
+WHERE od.BookID = b.BookID
+  AND od.OrderID = o.OrderID
+  AND o.CustomerID = c.CustomerID
+  AND c.LastName = 'lastname1'
+  AND c.FirstName = 'firstname1';
+
+4. Show the title of books which have more than 10 units in stock.
+
+SELECT b.Title
+FROM Books b
+WHERE b.Quantity > 10;
+
+5. Show the total price *lastname1 firstname1* has paid for the books.
+
+SELECT SUM(b.UnitPrice * od.Quantity) AS TotalPrice
+FROM Books b, OrderDetails od, Orders o, Customers c
+WHERE od.BookID = b.BookID
+  AND od.OrderID = o.OrderID
+  AND o.CustomerID = c.CustomerID
+  AND c.LastName = 'lastname1'
+  AND c.FirstName = 'firstname1';
+
+
+6. Show the names of the customers who have paid less than $80 in
+     totals.
+有问题
+SELECT c.FirstName, c.LastName
+FROM Customers c, Orders o, OrderDetails od, Books b
+WHERE c.CustomerID = o.CustomerID
+  AND o.OrderID = od.OrderID
+  AND od.BookID = b.BookID
+GROUP BY c.CustomerID, c.FirstName, c.LastName
+HAVING SUM(b.UnitPrice * od.Quantity) < 80;
+
+7. Show the name of books supplied by *supplier2*.
+
+SELECT b.Title
+FROM Books b, Suppliers s
+WHERE b.SupplierID = s.SupplierID
+  AND s.CompanyName = 'supplier2';
+
+8. Show the total price each customer paid and their names.  List the
+     result in descending price.
+有问题
+SELECT SUM(b.UnitPrice * od.Quantity) AS Total, c.FirstName, c.LastName
+FROM Customers c, Orders o, OrderDetails od, Books b
+WHERE c.CustomerID = o.CustomerID
+  AND o.OrderID = od.OrderID
+  AND od.BookID = b.BookID
+GROUP BY c.CustomerID, c.FirstName, c.LastName
+ORDER BY Total DESC;
+
+9. Show the names of all the books shipped on 08/04/2016 and their
+     shippers' names.
+
+SELECT DISTINCT b.Title, s.ShipperName
+FROM Orders o
+JOIN OrderDetails od ON o.OrderID = od.OrderID
+JOIN Books b ON od.BookID = b.BookID
+JOIN Shippers s ON o.ShipperID = s.ShipperID
+WHERE o.OrderDate = '2016-08-04';
+
+
+10. Show the unique names of all the books *lastname1 firstname1* and
+     *lastname4 firstname4* *both* ordered.
+
+SELECT b.Title
+FROM Books b, OrderDetails od, Orders o, Customers c
+WHERE c.LastName = 'lastname4'
+  AND c.FirstName = 'firstname4'
+  AND c.CustomerID = o.CustomerID
+  AND o.OrderID = od.OrderID
+  AND od.BookID = b.BookID
+INTERSECT
+SELECT b.Title
+FROM Books b, OrderDetails od, Orders o, Customers c
+WHERE c.LastName = 'lastname1'
+  AND c.FirstName = 'firstname1'
+  AND c.CustomerID = o.CustomerID
+  AND o.OrderID = od.OrderID
+  AND od.BookID = b.BookID;
+
+
+11. Show the names of all the books *lastname6 firstname6* was
+     responsible for.
+
+SELECT DISTINCT b.Title
+FROM Orders o
+JOIN OrderDetails od ON o.OrderID = od.OrderID
+JOIN Books b ON od.BookID = b.BookID
+WHERE o.EmployeeID = 2;
+
+
+
+12. Show the names of all the ordered books and their total
+     quantities.  List the result in ascending quantity.
+
+有问题
+SELECT b.Title, SUM(od.Quantity) AS Quantity
+FROM Books b, OrderDetails od
+WHERE od.BookID = b.BookID
+GROUP BY b.BookID, b.Title
+ORDER BY Quantity;
+
+13. Show the names of the customers who ordered at least 2 books.
+
+SELECT c.FirstName, c.LastName
+FROM Customers c
+JOIN Orders o ON c.CustomerID = o.CustomerID
+JOIN OrderDetails od ON o.OrderID = od.OrderID
+GROUP BY c.CustomerID, c.FirstName, c.LastName
+HAVING COUNT(DISTINCT od.BookID) >= 2;
+
+
+
+14. Show the name of the customers who have ordered at least a book in
+     *category3* or *category4* and the book names.
+
+SELECT DISTINCT c.FirstName, c.LastName, b.Title
+FROM Customers c
+JOIN Orders o ON c.CustomerID = o.CustomerID
+JOIN OrderDetails od ON o.OrderID = od.OrderID
+JOIN Books b ON od.BookID = b.BookID
+JOIN Subjects s ON b.SubjectID = s.SubjectID
+WHERE s.CategoryName IN ('category3', 'category4');
+
+15. Show the name of the customer who has ordered at least one book
+     written by *author1*.
+
+SELECT DISTINCT c.FirstName, c.LastName
+FROM Books b, OrderDetails od, Orders o, Customers c
+WHERE b.Author = 'author1'
+  AND b.BookID = od.BookID
+  AND od.OrderID = o.OrderID
+  AND o.CustomerID = c.CustomerID;
+
+16. Show the name and total sale (price of orders) of each employee.
+有问题
+SELECT e.FirstName, e.LastName, SUM(od.Quantity * b.UnitPrice) AS Total
+FROM Employees e, Orders o, OrderDetails od, Books b
+WHERE o.EmployeeID = e.EmployeeID
+  AND o.OrderID = od.OrderID
+  AND od.BookID = b.BookID
+GROUP BY e.EmployeeID, e.FirstName, e.LastName;
+
+17. Show the book names and their respective quantities for open
+     orders (the orders which have not been shipped) at midnight
+     08/04/2016.
+
+SELECT b.Title, SUM(od.Quantity) AS Quantity
+FROM Orders o
+JOIN OrderDetails od ON o.OrderID = od.OrderID
+JOIN Books b ON od.BookID = b.BookID
+WHERE o.ShippedDate IS NULL AND o.OrderDate <= '2016-08-04'
+GROUP BY b.Title;
+
+18. Show the names of customers who have ordered more than 1 book and
+     the corresponding quantities.  List the result in the descending
+     quantity.
+有问题
+SELECT c.FirstName, c.LastName, SUM(od.Quantity) AS Quantity
+FROM Orders o, OrderDetails od, Customers c
+WHERE o.OrderID = od.OrderID
+  AND o.CustomerID = c.CustomerID
+GROUP BY c.CustomerID, c.FirstName, c.LastName
+HAVING SUM(od.Quantity) > 1
+ORDER BY Quantity DESC;
+
+19. Show the names of customers who have ordered more than 3 books and
+     their respective telephone numbers.
+
+SELECT c.FirstName, c.LastName, c.Phone
+FROM Orders o, OrderDetails od, Customers c
+WHERE o.OrderID = od.OrderID
+  AND o.CustomerID = c.CustomerID
+GROUP BY c.CustomerID, c.FirstName, c.LastName, c.Phone
+HAVING SUM(od.Quantity) > 3;
+
